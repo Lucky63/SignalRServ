@@ -41,41 +41,41 @@ namespace webAPI22
 			services.AddDbContext<ApplicationContext>();
 
 			services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-				.AddJwtBearer(options =>
-				{
-					options.RequireHttpsMetadata = false;
-					options.TokenValidationParameters = new TokenValidationParameters
-					{
-						ValidateIssuer = true,
-						ValidIssuer = "http://localhost:5000",
-						ValidateAudience = true,
-						ValidAudience = "http://localhost:5000",
-						ValidateLifetime = true,
-						IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345")),
-						ValidateIssuerSigningKey = true,
-					};
-					options.Events = new JwtBearerEvents
-					{
-						OnMessageReceived = context =>
-						{
-							var accessToken = context.Request.Query["access_token"];
+			   .AddJwtBearer(options =>
+			   {
+				   options.RequireHttpsMetadata = false;
+				   options.TokenValidationParameters = new TokenValidationParameters
+				   {
+					   ValidateIssuer = true,
+					   ValidIssuer = AuthOptions.ISSUER,
+					   ValidateAudience = true,
+					   ValidAudience = AuthOptions.AUDIENCE,
+					   ValidateLifetime = true,
+					   IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(),
+					   ValidateIssuerSigningKey = true,
+				   };
+				   options.Events = new JwtBearerEvents
+				   {
+					   OnMessageReceived = context =>
+					   {
+						   var accessToken = context.Request.Query["access_token"];
 
-							// если запрос направлен хабу
-							var path = context.HttpContext.Request.Path;
-							if (!string.IsNullOrEmpty(accessToken) &&
+							   // если запрос направлен хабу
+							   var path = context.HttpContext.Request.Path;
+						   if (!string.IsNullOrEmpty(accessToken) &&
 								(path.StartsWithSegments("/chat")))
-							{
-								// получаем токен из строки запроса
-								context.Token = accessToken;
-							}
-							return Task.CompletedTask;
-						}
-					};
-				});
+						   {
+								   // получаем токен из строки запроса
+								   context.Token = accessToken;
+						   }
+						   return Task.CompletedTask;
+					   }
+				   };
+			   });
 
 			services.AddMvc();
 
-			
+
 		}
 
 
@@ -91,17 +91,16 @@ namespace webAPI22
 				app.UseHsts();
 			}
 			app.UseCors("CorsPolicy");
+			app.UseAuthentication();
+
 			app.UseSignalR(routes =>
 			{
 				routes.MapHub<ChatHub>("/chat");
 			});
-
 			app.UseHttpsRedirection();
 			app.UseDefaultFiles();
 			app.UseStaticFiles();
 			app.UseAuthentication();
-			
-
 			app.UseMvc(routes =>
 			{
 				routes.MapRoute(
@@ -109,36 +108,5 @@ namespace webAPI22
 					template: "{controller=Home}/{action=Index}/{id?}");
 			});
 		}
-	}
-
-	//public class Startup
-	//{
-	//	public void ConfigureServices(IServiceCollection services)
-	//	{
-	//		services.AddSignalR();
-	//		services.AddCors(o => o.AddPolicy("CorsPolicy", builder =>
-	//		{
-	//			builder
-	//				.WithOrigins("http://localhost:4200")
-	//				.AllowAnyMethod()
-	//				.AllowAnyHeader()
-	//				.AllowCredentials(); 
-	//		}));
-
-	//	}
-
-	//	public void Configure(IApplicationBuilder app)
-	//	{
-	//		app.UseCors("CorsPolicy");
-	//		app.UseSignalR(routes =>
-	//		{
-	//			routes.MapHub<ChatHub>("/chat");
-	//		});
-
-	//		app.UseDefaultFiles();
-	//		app.UseStaticFiles();
-
-
-	//	}
-	//}
+	}	
 }

@@ -8,9 +8,10 @@ using System.Threading.Tasks;
 
 namespace webAPI22
 {
-	[Authorize]
+
 	public class ChatHub : Hub
 	{
+		[Authorize]
 		public async Task Send(string message, string userName)
 		{
 			await Clients.All.SendAsync("Receive", message, userName);
@@ -20,17 +21,5 @@ namespace webAPI22
 			Clients.All.SendAsync("sendToAll", name, message);
 		}
 	}
-
-	//public class ChatHub : Hub
-	//{
-	//	public async Task Send(string message)
-	//	{
-	//		await this.Clients.All.SendAsync("Send", message);
-	//	}
-
-	//	public void SendToAll(string name, string message)
-	//	{
-	//		Clients.All.SendAsync("sendToAll", name, message);
-	//	}
-	//}
+	
 }
